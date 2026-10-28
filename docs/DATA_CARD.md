@@ -1,22 +1,18 @@
-# Data Card - Graphrag
+# Data Card - GraphRAG
 
-## Sources & provenance
-- Where each dataset came from (links), collection method, dates.
+The project bundles one small, synthetic corpus and a labeled question set; there is no
+training data and nothing is downloaded.
 
-## Licensing
-- License of each source and whether usage complies. Redistribution terms.
+## bundled corpus (`src/graphrag/data.py`)
 
-## Composition
-- Size, format, fields, language(s), modality.
-
-## Preprocessing & filtering
-- Cleaning, dedup, PII handling, filtering rules.
-
-## Contamination checks
-- How you ensured evaluation data is not in training / few-shot context.
-
-## Known biases & gaps
-- Representation gaps, label noise, sampling bias.
+- **Provenance:** hand-authored for this project. Ten short passages, each stating a single
+  relation (landmark located_in city, city capital_of country, country part_of continent),
+  so extraction links them into chains.
+- **Labeled questions:** six questions, two of them genuinely multi-hop (the answer is not
+  in any single passage and is reachable only by traversing relations).
+- **Licensing:** authored by this repository; MIT.
+- **Known gaps:** tiny, English, general-knowledge; a demonstration set, not a benchmark.
 
 ## Ethical considerations
-- Consent, sensitive content, privacy.
+
+The corpus is synthetic and contains no personal, sensitive, or copyrighted content.

@@ -1,21 +1,24 @@
-# Threat Model - Graphrag
+# Threat Model - GraphRAG
 
 ## Assets
-- What's worth protecting (data, keys, model, user trust, budget).
+
+- Integrity of the extracted graph and the answers read off it.
 
 ## Trust boundaries
-- Where untrusted input crosses into the system (reference the architecture diagram).
 
-## Threats (STRIDE + LLM-specific)
+- **Documents and questions are untrusted text.** They are parsed and traversed, never
+  executed; there is no path from text to execution.
+
+## Threats and mitigations
 
 | Threat | Vector | Impact | Mitigation |
 |---|---|---|---|
-| Prompt injection | Untrusted content in context / tools | Data exfiltration, unsafe actions | Input/output filtering, tool allow-list, least privilege |
-| Jailbreak | Adversarial user prompt | Policy bypass | System-prompt hardening, output classifier, refusal evaluation |
-| Data exfiltration | Model echoes secrets / PII | Privacy breach | Secret scanning, output redaction, no secrets in context |
-| Excessive cost | Unbounded loops / large inputs | $ blowout | Token/step budgets, rate limits, timeouts |
-| Tool abuse | Agent calls dangerous tool | Destructive action | Approval gates, sandboxing, dry-run |
-| Supply chain | Malicious dependency | Code execution | Pinned dependencies, Dependabot, SBOM |
+| Non-terminating traversal | Cyclic relations | Hang | Breadth-first traversal with a visited set and a hop budget |
+| Extraction errors | Prose that misleads the patterns | Wrong edges | Rule-based extraction is inspectable; relations record their source document |
+| Graph poisoning | Malicious documents added | Skewed answers | Extraction and traversal are read-only; callers control the corpus |
+| Supply-chain compromise | Malicious dependency | Code execution | Zero runtime dependencies; Dependabot and CodeQL in continuous integration |
 
 ## Residual risk
-- What remains after mitigations and why it's acceptable.
+
+Rule-based extraction cannot capture relations phrased outside its patterns; such facts are
+simply absent from the graph, a capability limit rather than a security control.

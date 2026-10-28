@@ -1,27 +1,38 @@
-# Model / System Card - Graphrag
+# System Card - GraphRAG
 
 ## Overview
-- **What it is:** 1 - 2 sentences.
-- **Base model(s):** e.g., Claude 3.5 Sonnet / GPT-4o / Llama-3-8B / from-scratch.
-- **Version & date:**
+
+- **What it is:** a GraphRAG system - entity/relation extraction, knowledge-graph
+  construction, and traversal-based retrieval with cited relation paths.
+- **What it is not:** a generator. It extracts and traverses; it does not call a language
+  model to write answers.
+- **Version:** 0.1.0.
 
 ## Intended use
-- **Primary use cases:**
-- **Primary users:**
+
+- **Primary use cases:** learning and demonstrating knowledge-graph RAG and multi-hop
+  retrieval; a from-scratch reference for extraction and graph traversal.
+- **Primary users:** engineers and researchers building retrieval systems.
 
 ## Out-of-scope / prohibited use
-- Where this should **not** be used, and why.
+
+- Not tuned for production-scale graphs; the graph is in-memory.
+- The bundled corpus is a demonstration, not a benchmark.
 
 ## Performance
-- Summary of key metrics (link to [`EVALUATION_REPORT.md`](EVALUATION_REPORT.md)).
-- Known performance disparities across inputs / subgroups.
 
-## Risks & limitations
-- Failure modes, biases, hallucination behavior, brittleness.
-- **Dual-use / misuse considerations.**
+See the README results. Graph traversal answers multi-hop questions (1.00) the flat
+baseline cannot (0.00), with no single-hop regression.
+
+## Risks and limitations
+
+- Rule-based extraction misses relations that do not match the patterns.
+- The relation vocabulary is small and illustrative.
 
 ## Safety mitigations
-- Guardrails, filtering, human-in-the-loop, abstention behavior.
+
+- Deterministic, offline, reproducible; bounded traversal guarantees termination.
 
 ## Environmental / cost footprint
-- Compute used; approximate cost / energy where relevant.
+
+Negligible; all in-memory with no model calls.
