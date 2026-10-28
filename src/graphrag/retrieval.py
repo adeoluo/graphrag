@@ -75,6 +75,19 @@ class GraphRetriever:
         reachable = self._graph.bfs(linked, max_hops=self._max_hops)
         subgraph = self._graph.subgraph_relations(reachable)
 
+        # Compound multi-hop: "what country is X in" follows location/capital chains to the
+        # terminal country, which no single passage states.
+        if self._asks_for_country(query):
+            path, answer_entity = self._country_path(linked[0])
+            if path:
+                return GraphAnswer(
+                    answer=answer_entity,
+                    path=tuple(path),
+                    linked_entities=tuple(linked),
+                    subgraph_size=len(subgraph),
+                    confidence=0.8,
+                )
+
         target_relation = self._target_relation(query)
         path, answer_entity = self._find_path(linked[0], target_relation)
         if path:
@@ -93,6 +106,43 @@ class GraphRetriever:
             subgraph_size=len(subgraph),
             confidence=0.0,
         )
+
+    @staticmethod
+    def _asks_for_country(query: str) -> bool:
+        lowered = query.lower()
+        return "country" in lowered and "capital of" not in lowered
+
+    def _country_path(self, start: str) -> tuple[list[Relation], str]:
+        """Follow located_in and capital_of edges to the terminal country entity.
+
+        A country is an entity that is the source of a ``part_of`` relation (for example
+        "France is a country in Europe"). Chaining located_in then capital_of from a
+        landmark reaches it - a genuine multi-hop answer.
+        """
+        from collections import deque
+
+        countries = {
+            relation.source
+            for relation in self._graph.relations()
+            if relation.relation == "part_of"
+        }
+        queue: deque[tuple[str, list[Relation]]] = deque([(start, [])])
+        visited = {start}
+        while queue:
+            entity, path = queue.popleft()
+            if entity in countries and path:
+                return path, entity
+            if len(path) >= self._max_hops:
+                continue
+            for relation in self._graph.neighbors(entity):
+                if relation.relation not in {"located_in", "capital_of"}:
+                    continue
+                nxt = relation.target if relation.source == entity else relation.source
+                if nxt in visited:
+                    continue
+                visited.add(nxt)
+                queue.append((nxt, [*path, relation]))
+        return [], ""
 
     @staticmethod
     def _target_relation(query: str) -> str | None:
