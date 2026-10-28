@@ -78,8 +78,9 @@ Use the library directly:
 ```python
 from graphrag import build_graph, GraphRetriever
 
-graph = build_graph([("d0", "The Eiffel Tower is located in Paris."),
-                     ("d1", "Paris is the capital of France.")])
+graph = build_graph(
+    [("d0", "The Eiffel Tower is located in Paris."), ("d1", "Paris is the capital of France.")]
+)
 answer = GraphRetriever(graph).retrieve("What country is the Eiffel Tower in")
 print(answer.answer, [r.as_triple() for r in answer.path])
 ```
