@@ -1,5 +1,5 @@
 ---
-title: System Architecture - Graphrag
+title: System Architecture - GraphRAG
 config:
   theme: base
   themeVariables:
@@ -15,24 +15,25 @@ flowchart LR
     classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef external fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
-    classDef danger   fill:#EF4444,stroke:#1E293B,color:#ffffff,stroke-width:1px;
 
-    User([User]):::external
+    Docs[(Documents)]:::data
+    Question([Question]):::external
 
-    subgraph Application["Application Service"]
-        API[API Layer]:::core
-        Core[Core Engine]:::core
-        Evaluation[Evaluation Harness]:::core
+    subgraph Build["Graph Construction"]
+        Extract[Entity + relation extraction]:::core
+        Graph[(Knowledge graph)]:::data
     end
 
-    Cache[(Semantic Cache)]:::data
-    Store[(Datastore / Index)]:::data
-    LLM{{LLM Provider}}:::external
+    subgraph Retrieve["Traversal Retrieval"]
+        Link[Entity linking]:::core
+        Traverse[BFS traversal]:::core
+        Answer[Path-based answer]:::core
+    end
 
-    User -->|request| API
-    API --> Core
-    Core -->|lookup| Cache
-    Core -->|retrieve| Store
-    Core -->|completion| LLM
-    Core -.->|traces/metrics| Evaluation
-    Core -->|response| User
+    Docs --> Extract
+    Extract -->|triples| Graph
+    Question --> Link
+    Link -->|seed entities| Traverse
+    Graph --> Traverse
+    Traverse --> Answer
+    Answer -->|cited path| Question

@@ -1,34 +1,31 @@
-# Evaluation Report - Graphrag
+# Evaluation Report - GraphRAG
 
-> Reproduce everything here with `make evaluation`. Report mean ± 95% confidence interval over N seeds.
+> Reproduce with `python -m graphrag evaluate`. Deterministic and offline.
 
 ## Setup
-- **Task / dataset:** name, size, split.
-- **Metrics:** definition of each metric and why it's the right one.
-- **Graders:** exact-match / model-graded (which model, prompt) / human.
-- **Baselines:** what you compare against.
-- **Seeds:** list. **Hardware:** e.g., 1×A100 80GB. **Cost:** $X. **Runtime:** Yh.
 
-## Headline results
+- **Corpus:** 10 single-relation passages that extraction links into landmark -> city ->
+  country -> continent chains.
+- **Questions:** 6 labeled questions, 2 of them multi-hop (the answer is reachable only by
+  traversing more than one relation).
+- **Metric:** answer accuracy, split by single- vs multi-hop.
+- **Methods:** graph traversal vs a flat keyword baseline that returns an entity from the
+  best-overlap passage.
 
-| Metric | This project | Baseline | SOTA / ref | Δ vs baseline |
-|---|---:|---:|---:|---:|
-| Primary (↑) | **0.00 ± 0.00** | 0.00 | 0.00 | +0.00 |
-| Latency p95 (ms, ↓) | **0** | 0 | - | - |
-| Cost / 1k ($, ↓) | **0.00** | 0.00 | - | - |
+## Results
 
-## Ablations
+| Method | overall | multi-hop | single-hop |
+|---|---:|---:|---:|
+| flat baseline | 0.67 | 0.00 | 1.00 |
+| graph | 1.00 | 1.00 | 1.00 |
 
-| Variant | Metric | Δ | Notes |
-|---|---:|---:|---|
-| Full | 0.00 | - | reference |
-| - component X | 0.00 | −0.00 | shows X matters |
+## Interpretation
 
-## LLM-as-judge validation (if used)
-- Agreement with human labels (Cohen's κ / accuracy), bias controls, sample size.
-
-## Error analysis
-- Top failure categories with counts and representative examples.
+The flat baseline answers single-hop questions perfectly but fails every multi-hop question
+(0.00): the answer entity never appears in the same passage as the question's entity. Graph
+traversal chains the connecting relations and answers all of them (1.00), a +1.00 multi-hop
+gain with no single-hop regression. This is the central claim of GraphRAG, measured directly.
 
 ## Reproducibility
-- Exact command, configuration hash, dataset version, W&B/MLflow run URL.
+
+Everything is offline and deterministic; the numbers regenerate exactly.
