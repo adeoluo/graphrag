@@ -107,6 +107,14 @@ print(answer.answer, [r.as_triple() for r in answer.path])
   lets multi-hop questions resolve. ([ADR-0003](docs/adr/0003-traversal-retrieval.md))
 - **Zero runtime dependencies.** The graph, extractor, and retriever are pure Python.
 
+## Performance
+
+A deterministic micro-benchmark (`uv run python benchmarks/benchmark.py`) builds a graph of
+roughly fifteen hundred entities and a thousand relations from a thousand synthetic
+sentences and runs five hundred multi-hop traversal queries. On a laptop the graph builds in
+a few milliseconds and traversal sustains thousands of queries per second, because each
+answer follows a short path through an adjacency index rather than scanning passages.
+
 ## Responsible AI
 
 - **Model card:** [docs/MODEL_CARD.md](docs/MODEL_CARD.md)
