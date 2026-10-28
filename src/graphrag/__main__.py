@@ -1,15 +1,12 @@
-"""Entrypoint: `python -m graphrag`."""
+"""Entrypoint placeholder; the full CLI is added with retrieval."""
 
 from __future__ import annotations
 
 from graphrag import __version__
-from graphrag.configuration import settings
 
 
 def main() -> None:
-    header = f"Graphrag v{__version__}"
-    status = f"environment={settings.environment}, seed={settings.seed}"
-    print(f"{header} - {status}")
+    print(f"graphrag v{__version__}")
 
 
 if __name__ == "__main__":
