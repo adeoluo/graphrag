@@ -8,32 +8,47 @@ config:
     primaryBorderColor: "#1E293B"
     primaryTextColor: "#1E293B"
     lineColor: "#64748B"
-    clusterBkg: "#E2E8F0"
+    clusterBkg: "#EEF2FF"
     clusterBorder: "#94A3B8"
 ---
-flowchart LR
+flowchart TB
+    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
     classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef external fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
 
-    Docs[(Documents)]:::data
-    Question([Question]):::external
+    Client([Client]):::edge
 
-    subgraph Build["Graph Construction"]
-        Extract[Entity + relation extraction]:::core
-        Graph[(Knowledge graph)]:::data
+    subgraph Ingest["Ingestion (once at startup)"]
+        direction TB
+        Docs[(Document corpus)]:::data
+        Entities[Entity extraction]:::core
+        Relations[Relation extraction]:::core
     end
 
-    subgraph Retrieve["Traversal Retrieval"]
+    subgraph Edge["Service layer (stdlib HTTP, stateless)"]
+        direction TB
+        Router["Router<br/>GET /health | POST /ask"]:::core
+        Validate["Query validation<br/>bound: query length"]:::control
+    end
+
+    subgraph Retrieve["Traversal retrieval (bounded)"]
+        direction TB
         Link[Entity linking]:::core
-        Traverse[BFS traversal]:::core
-        Answer[Path-based answer]:::core
+        BFS["Breadth-first traversal<br/>hop budget, visited set"]:::core
+        PathRead["Relation-path answer<br/>compound chains"]:::core
     end
 
-    Docs --> Extract
-    Extract -->|triples| Graph
-    Question --> Link
-    Link -->|seed entities| Traverse
-    Graph --> Traverse
-    Traverse --> Answer
-    Answer -->|cited path| Question
+    Graph[(Knowledge graph<br/>entities + labeled edges, in memory)]:::data
+    Trace["Relation path<br/>as citation"]:::obs
+
+    Docs --> Entities --> Relations -->|triples| Graph
+    Client -->|JSON request| Router --> Validate
+    Validate -->|query| Link
+    Link -->|seed entities| BFS
+    BFS -->|neighbors| Graph
+    Graph -->|edges| BFS
+    BFS --> PathRead
+    PathRead -->|answer| Router -->|JSON response| Client
+    PathRead -.-> Trace

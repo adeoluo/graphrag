@@ -107,13 +107,35 @@ print(answer.answer, [r.as_triple() for r in answer.path])
   lets multi-hop questions resolve. ([ADR-0003](docs/adr/0003-traversal-retrieval.md))
 - **Zero runtime dependencies.** The graph, extractor, and retriever are pure Python.
 
-## Performance
+## Running the service
+
+A dependency-free HTTP service exposes graph retrieval as a production-style JSON API:
+
+```bash
+python -m graphrag serve --port 8000
+
+curl localhost:8000/health
+curl -s -X POST localhost:8000/ask -d '{"query": "What country is the Eiffel Tower in"}'
+```
+
+`GET /health` reports entity and relation counts; `POST /ask` returns the answer, the
+relation path used as a citation, the linked entities, and a confidence. See the
+[operations guide](docs/OPERATIONS.md) for the service contract and operational constraints.
+
+## Performance and reliability
 
 A deterministic micro-benchmark (`uv run python benchmarks/benchmark.py`) builds a graph of
 roughly fifteen hundred entities and a thousand relations from a thousand synthetic
 sentences and runs five hundred multi-hop traversal queries. On a laptop the graph builds in
 a few milliseconds and traversal sustains thousands of queries per second, because each
 answer follows a short path through an adjacency index rather than scanning passages.
+
+A production-style stress benchmark (`uv run python benchmarks/stress.py`) drives the full
+service handler under concurrent load and reports throughput with p50, p95, and p99 latency.
+It surfaces a real constraint: the pure-Python traversal is bound by the global interpreter
+lock, so throughput is flat across threads and the tail grows with concurrency; the service
+is scaled with processes. The scaling path and tradeoffs are in [docs/SCALING.md](docs/SCALING.md),
+and a full request walk-through is in the [case study](docs/CASE_STUDY.md).
 
 ## Responsible AI
 
