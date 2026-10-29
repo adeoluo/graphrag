@@ -16,6 +16,8 @@ is built once at startup and then serves stateless requests.
 | Method | Path | Body | Success |
 |---|---|---|---|
 | GET | `/health` | none | `{"status": "ok", "entities": N, "relations": M}` |
+| GET | `/ready` | none | readiness once the graph is loaded |
+| GET | `/metrics` | none | per-route request, error, and latency metrics (Prometheus text) |
 | POST | `/ask` | `{"query"}` | answer, relation path, linked entities, confidence |
 
 Errors return JSON `{"error": ...}` with a 4xx status; malformed JSON yields `400`,
