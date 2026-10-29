@@ -120,7 +120,8 @@ curl -s -X POST localhost:8000/ask -d '{"query": "What country is the Eiffel Tow
 
 `GET /health` reports entity and relation counts; `POST /ask` returns the answer, the
 relation path used as a citation, the linked entities, and a confidence. See the
-[operations guide](docs/OPERATIONS.md) for the service contract and operational constraints.
+[operations guide](docs/OPERATIONS.md) for the service contract and operational constraints. The service also exposes `GET /ready` (readiness) and `GET /metrics`
+(per-route request, error, and latency metrics in Prometheus text format).
 
 ## Performance and reliability
 
@@ -158,5 +159,5 @@ and a full request walk-through is in the [case study](docs/CASE_STUDY.md).
 
 ## License
 
-[MIT](LICENSE). Part of a 28-project artificial intelligence engineering portfolio by
+[MIT](LICENSE). Part of an artificial intelligence engineering portfolio by
 [adeoluo](https://github.com/adeoluo).
