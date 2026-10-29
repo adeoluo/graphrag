@@ -22,7 +22,7 @@ documents: "What country is the Eiffel Tower in?" needs the fact that the Eiffel
 in Paris *and* that Paris is the capital of France - two facts no single passage states.
 GraphRAG instead extracts entities and relations into a **knowledge graph** and answers by
 **traversing explicit edges**, so multi-hop questions are resolved by following the graph.
-This project builds that end to end **from first principles**, with **zero runtime
+This project builds that end to end **from scratch**, with **zero runtime
 dependencies** and a deterministic, offline test suite.
 
 ## Architecture
