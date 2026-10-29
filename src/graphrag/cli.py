@@ -40,6 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     eval_parser = subparsers.add_parser("evaluate", help="Compare graph and flat retrieval.")
     eval_parser.set_defaults(handler=_handle_evaluate)
+
+    serve_parser = subparsers.add_parser("serve", help="Start the HTTP graph service.")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Bind host.")
+    serve_parser.add_argument("--port", type=int, default=8000, help="Bind port.")
+    serve_parser.set_defaults(handler=_handle_serve)
     return parser
 
 
@@ -75,6 +80,13 @@ def _handle_evaluate(_: argparse.Namespace) -> int:
     print(graph_report.format())
     gain = graph_report.multi_hop - flat.multi_hop
     print(f"\nMulti-hop gain from graph retrieval: {gain:+.2f}")
+    return 0
+
+
+def _handle_serve(args: argparse.Namespace) -> int:
+    from graphrag.service import serve
+
+    serve(host=args.host, port=args.port)
     return 0
 
 
