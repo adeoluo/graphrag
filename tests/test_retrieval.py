@@ -32,6 +32,19 @@ def test_link_no_entity() -> None:
     assert link_entities("where is it located", _graph()) == []
 
 
+def test_link_containment_is_deterministic() -> None:
+    # Regression: the containment fallback iterated a set, so an ambiguous mention
+    # that is contained in several entity names resolved by hash seed. A graph with
+    # two entities both containing "San" must always link the same one.
+    graph = KnowledgeGraph()
+    graph.add_relation(Relation("San Francisco", "located_in", "California"))
+    graph.add_relation(Relation("San Diego", "located_in", "California"))
+    results = {tuple(link_entities("What about San", graph)) for _ in range(20)}
+    assert len(results) == 1
+    # sorted order makes "San Diego" the deterministic winner over "San Francisco"
+    assert next(iter(results)) == ("San Diego",)
+
+
 # --------------------------------------------------------------------------- #
 # Graph retrieval
 # --------------------------------------------------------------------------- #
