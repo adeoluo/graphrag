@@ -68,8 +68,15 @@ class KnowledgeGraph:
             yield from edges
 
     def neighbors(self, entity: str) -> list[Relation]:
-        """Return relations incident to ``entity`` in either direction."""
-        return self._out.get(entity, []) + self._in.get(entity, [])
+        """Return relations incident to ``entity`` in either direction.
+
+        A self-loop (source equal to target) is stored in both the outgoing and
+        incoming lists, so it is counted once here by excluding self-loops from
+        the incoming contribution rather than returning it twice.
+        """
+        outgoing = self._out.get(entity, [])
+        incoming = [relation for relation in self._in.get(entity, []) if relation.source != entity]
+        return outgoing + incoming
 
     def bfs(self, seeds: Iterable[str], *, max_hops: int = 2) -> set[str]:
         """Return all entities reachable from ``seeds`` within ``max_hops`` hops."""

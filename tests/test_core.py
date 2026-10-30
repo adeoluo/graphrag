@@ -35,6 +35,17 @@ def test_neighbors_both_directions() -> None:
     assert len(graph.neighbors("France")) == 1
 
 
+def test_neighbors_counts_self_loop_once() -> None:
+    # Regression: a self-loop is stored in both the outgoing and incoming lists,
+    # so it was returned twice.
+    graph = KnowledgeGraph()
+    graph.add_relation(Relation("A", "relates_to", "A"))
+    assert len(graph.neighbors("A")) == 1
+    graph.add_relation(Relation("A", "points_to", "B"))
+    assert len(graph.neighbors("A")) == 2
+    assert len(graph.neighbors("B")) == 1
+
+
 def test_bfs_reaches_multi_hop() -> None:
     graph = KnowledgeGraph()
     graph.add_relation(Relation("Eiffel Tower", "located_in", "Paris"))

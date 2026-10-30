@@ -38,8 +38,10 @@ def link_entities(query: str, graph: KnowledgeGraph) -> list[str]:
         if mention in graph.entities and mention not in linked:
             linked.append(mention)
             continue
-        # Fall back to a containment match (mention is part of an entity name or vice versa).
-        for entity in graph.entities:
+        # Fall back to a containment match (mention is part of an entity name or
+        # vice versa). Iterate in sorted order so the choice is deterministic;
+        # iterating the entity set directly depends on the hash seed.
+        for entity in sorted(graph.entities):
             if (mention in entity or entity in mention) and entity not in linked:
                 linked.append(entity)
                 break
