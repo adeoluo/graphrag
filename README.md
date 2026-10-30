@@ -50,6 +50,27 @@ This is the whole thesis: the flat baseline scores **zero** on multi-hop questio
 no single passage contains the answer, while graph traversal reaches it by chaining
 relation edges - a **+1.00** gain, with no regression on single-hop questions.
 
+### Scale
+
+`benchmarks/scale.py` builds knowledge graphs from progressively larger synthetic
+corpora of relation chains and answers up to 200 genuinely multi-hop questions
+against each, reporting graph size, wall-clock time, traversal throughput, peak
+memory (stdlib `tracemalloc`), and multi-hop answer accuracy. Measured on this
+machine (`uv run python benchmarks/scale.py`):
+
+| Chains | Entities | Seconds | Queries/sec | Peak MiB | Accuracy |
+|---:|---:|---:|---:|---:|---:|
+| 250 | 751 | 0.16 | 1,371 | 0.4 | 1.00 |
+| 500 | 1,501 | 0.33 | 656 | 0.8 | 1.00 |
+| 1,000 | 3,001 | 0.66 | 322 | 1.4 | 1.00 |
+| 2,000 | 6,001 | 1.41 | 151 | 3.1 | 1.00 |
+
+Traversal stays exact (accuracy 1.00) as the graph grows, but throughput falls
+because the from-scratch retriever rescans relation edges per query to locate the
+terminal country. These numbers are from synthetic data on a pure-Python
+implementation; they are **not** a comparison against production graph databases
+or vector stores, which would be far faster and are the right tool at real scale.
+
 ## Demonstration
 
 ```text
