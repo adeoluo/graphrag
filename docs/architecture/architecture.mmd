@@ -5,53 +5,44 @@ flowchart LR
     classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
 
-    User([CLI user]):::edge
-    Client([HTTP client]):::edge
-
-    subgraph Interfaces["Interfaces (CLI and stdlib HTTP)"]
+    subgraph Interfaces["Interfaces"]
         direction TB
-        CLI["cli.py<br/>graph | ask | evaluate | serve"]:::edge
-        Router["service.py router<br/>/health /ready /ask /metrics"]:::core
-        Validate["Query validation<br/>max 2000 characters"]:::control
+        Users([Users and clients]):::edge
+        CLI["CLI<br/>graph, ask, evaluate"]:::edge
+        Router["HTTP service<br/>/ask /metrics"]:::core
+        Validate["Validation<br/>query, max 2000 chars"]:::control
+        Users --> CLI ~~~ Router --> Validate
     end
 
-    subgraph Core["Core logic (graph build and traversal)"]
+    subgraph State["Graph build and data"]
         direction TB
-        Extract["extraction.py<br/>entities and 6 relation types"]:::core
-        Link["Entity linking<br/>exact, then containment"]:::core
-        BFS["Breadth-first traversal<br/>max 3 hops, reachable subgraph"]:::core
-        PathSel["Path selection<br/>target relation or country chain"]:::core
-    end
-
-    subgraph State["Data and state (in memory)"]
-        direction TB
-        Docs[("Document corpus<br/>data.py")]:::data
-        Graph[("Knowledge graph<br/>labeled multigraph with provenance")]:::data
+        Docs[("Document corpus")]:::data
+        Extract["Extraction<br/>entities, 6 relations"]:::core
+        Graph[("Knowledge graph<br/>with provenance")]:::data
         Questions[("Question set<br/>single and multi-hop")]:::data
+        Docs --> Extract --> Graph ~~~ Questions
+    end
+
+    subgraph Core["Traversal retrieval"]
+        direction TB
+        Link["Entity linking<br/>exact, containment"]:::core
+        BFS["BFS traversal<br/>up to 3 hops"]:::core
+        Path["Path selection<br/>relation or country"]:::core
+        Link --> BFS --> Path
     end
 
     subgraph Obs["Evaluation and observability"]
         direction TB
-        Answer["Answer JSON<br/>relation path as citation, confidence"]:::obs
-        Eval["evaluation.py<br/>accuracy by hop count"]:::obs
-        Flat["Flat baseline<br/>best keyword-overlap passage"]:::obs
-        Metrics["ServiceMetrics<br/>Prometheus text"]:::obs
+        Answer["Answer JSON<br/>path as citation"]:::obs
+        Flat["Flat baseline<br/>keyword overlap"]:::obs
+        Eval["Accuracy<br/>single vs multi-hop"]:::obs
+        Metrics["Metrics<br/>Prometheus text"]:::obs
+        Answer --> Eval
+        Flat --> Eval
+        Eval ~~~ Metrics
     end
 
-    User -->|arguments| CLI
-    Client -->|JSON request| Router
-    Router -->|POST /ask| Validate
-    Docs -->|sentences| Extract
-    Extract -->|triples| Graph
-    Validate -->|query| Link
-    CLI -->|question| Link
-    Graph -.->|entity names| Link
-    Link -->|seed entities| BFS
-    Graph -.->|neighbors| BFS
-    BFS -->|subgraph| PathSel
-    PathSel -->|answer and path| Answer
-    Questions -.->|gold answers| Eval
-    PathSel -->|graph answers| Eval
-    Docs -.-> Flat
-    Flat -->|flat answers| Eval
-    Router -.->|route latency and errors| Metrics
+    Interfaces -->|question| Core
+    State -.->|entities, edges| Core
+    Core -->|answer, path| Obs
+    State -.->|gold answers| Obs
