@@ -28,10 +28,15 @@ This project builds that end to end **from scratch**, with a deterministic, offl
   <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
+<sub>Legend: amber = entry points and external systems, indigo = core logic, green = data and state, blue = validation and control, grey = observability and outputs.</sub>
+
 Documents are parsed by **entity and relation extraction** into triples that populate a
-**knowledge graph**. A question is answered by **linking** its mentions to graph entities,
-**traversing** outward (breadth-first) to gather a connected subgraph, and reading the
-answer off a **relation path**. See the [ADRs](docs/adr/) for key choices.
+**knowledge graph**. A question, from the CLI or a validated `/ask` request, is answered by
+**linking** its mentions to graph entities, **traversing** outward (breadth-first, up to three
+hops) to gather a connected subgraph, and reading the answer off a **relation path** that
+doubles as the citation. The evaluation scores graph answers and a flat keyword baseline on
+the same single- and multi-hop questions, and every route records latency and errors for
+`/metrics`. See the [ADRs](docs/adr/) for key choices.
 
 ### Components
 
