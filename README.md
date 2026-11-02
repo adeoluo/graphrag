@@ -75,23 +75,26 @@ machine (`uv run python benchmarks/scale.py`):
 
 | Chains | Entities | Seconds | Queries/sec | Peak MiB | Accuracy |
 |---:|---:|---:|---:|---:|---:|
-| 250 | 751 | 0.16 | 1,371 | 0.4 | 1.00 |
-| 500 | 1,501 | 0.33 | 656 | 0.8 | 1.00 |
-| 1,000 | 3,001 | 0.66 | 322 | 1.4 | 1.00 |
-| 2,000 | 6,001 | 1.41 | 151 | 3.1 | 1.00 |
+| 250 | 751 | 0.018 | 19,662 | 0.4 | 1.00 |
+| 500 | 1,501 | 0.034 | 13,396 | 0.9 | 1.00 |
+| 1,000 | 3,001 | 0.057 | 8,655 | 1.6 | 1.00 |
+| 2,000 | 6,001 | 0.109 | 4,999 | 3.6 | 1.00 |
 
-Traversal stays exact (accuracy 1.00) as the graph grows, but throughput falls
-because the from-scratch retriever rescans relation edges per query to locate the
-terminal country. These numbers are from synthetic data on a Python
-implementation; they are **not** a comparison against production graph databases
-or vector stores, which would be far faster and are the right tool at real scale.
+Traversal stays exact (accuracy 1.00) as the graph grows. Each query used to rescan every
+relation twice (once to find countries, once to collect the subgraph) and sort every entity
+name for each mention; the graph now keeps a per-label index of relation sources, a cached
+sorted entity list and insertion order, so a query reads only the edges of the entities it
+reached. That raised throughput at 2,000 chains from 151 to 4,999 queries per second (33x)
+with identical answers, paths and subgraphs (checked against the previous version), for about
+15% more memory. Most of the remaining time is building the graph, not answering. These are
+synthetic data.
 
 ### Performance and reliability
 
 A deterministic micro-benchmark (`uv run python benchmarks/benchmark.py`) builds a graph of
 roughly fifteen hundred entities and a thousand relations from a thousand synthetic
 sentences and runs five hundred multi-hop traversal queries. On a laptop the graph builds in
-a few milliseconds and traversal sustains thousands of queries per second, because each
+3.3 ms and traversal sustains about 19,000 queries per second, because each
 answer follows a short path through an adjacency index rather than scanning passages.
 
 A production-style stress benchmark (`uv run python benchmarks/stress.py`) drives the full
