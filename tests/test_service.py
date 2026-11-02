@@ -1,4 +1,4 @@
-"""Tests for the dependency-free HTTP graph service (pure handler layer)."""
+"""Tests for the standard-library HTTP graph service (pure handler layer)."""
 
 from __future__ import annotations
 

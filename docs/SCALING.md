@@ -22,7 +22,7 @@ Because replicas share nothing, throughput is approximately linear in replica co
 ## Substantial tradeoffs
 
 - **In-memory graph vs a graph database.** In memory gives sub-millisecond traversal and
-  zero dependencies, bounded by graph size per replica and restart-to-update. A graph
+  no extra infrastructure, bounded by graph size per replica and restart-to-update. A graph
   database lifts the size ceiling and adds durable writes, at the cost of a network hop,
   a dependency, and operational surface. The reference chooses latency and simplicity;
   the graph sits behind an interface for a later swap.
@@ -32,7 +32,7 @@ Because replicas share nothing, throughput is approximately linear in replica co
 - **Breadth-first traversal vs weighted search.** Breadth-first is simple and bounded but
   treats all edges equally. Weighted or learned traversal would rank paths at the cost of
   tuning and a scoring model.
-- **Threads vs processes.** Traversal is pure Python and GIL-bound, so processes, not
+- **Threads vs processes.** Traversal is CPU-bound Python under the GIL, so processes, not
   threads, are the unit of scaling. The service is stateless to make that trivial.
 
 ## What would change under real load
