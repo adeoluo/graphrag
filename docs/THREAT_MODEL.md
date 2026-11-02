@@ -16,7 +16,7 @@
 | Non-terminating traversal | Cyclic relations | Hang | Breadth-first traversal with a visited set and a hop budget |
 | Extraction errors | Prose that misleads the patterns | Wrong edges | Rule-based extraction is inspectable; relations record their source document |
 | Graph poisoning | Malicious documents added | Skewed answers | Extraction and traversal are read-only; callers control the corpus |
-| Supply-chain compromise | Malicious dependency | Code execution | No third-party runtime packages; Dependabot and CodeQL in continuous integration |
+| Supply-chain compromise | Malicious dependency | Code execution | No third-party runtime packages; development tools pinned in `uv.lock`; CodeQL in continuous integration |
 
 ## Residual risk
 
