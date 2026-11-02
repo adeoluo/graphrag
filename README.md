@@ -154,6 +154,22 @@ relation path used as a citation, the linked entities, and a confidence. See the
 [operations guide](docs/OPERATIONS.md) for the service contract and operational constraints. The service also exposes `GET /ready` (readiness) and `GET /metrics`
 (per-route request, error, and latency metrics in Prometheus text format).
 
+### Demos
+
+Recorded from real runs with [vhs](https://github.com/charmbracelet/vhs); each tape is in `docs/demo/`.
+
+A multi-hop question answered over the knowledge graph.
+
+<p align="center">
+  <img src="docs/demo/ask.gif" alt="A multi-hop question answered over the knowledge graph" width="860">
+</p>
+
+The extracted entity graph and the evaluation.
+
+<p align="center">
+  <img src="docs/demo/graph.gif" alt="The extracted entity graph and the evaluation" width="860">
+</p>
+
 ## Design decisions
 
 - **Rule-based extraction.** The project's contribution is the graph construction and
