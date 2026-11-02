@@ -10,7 +10,7 @@ provenance.
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Set
 from dataclasses import dataclass
 
 
@@ -34,14 +34,22 @@ class KnowledgeGraph:
         self._entities: set[str] = set()
         self._out: dict[str, list[Relation]] = {}
         self._in: dict[str, list[Relation]] = {}
+        # Indexes kept up to date on insert, so per-query lookups never scan the graph.
+        self._order: dict[str, int] = {}
+        self._sources_by_label: dict[str, set[str]] = {}
+        self._sorted: tuple[str, ...] | None = None
 
     def add_entity(self, name: str) -> None:
         """Add an entity node (idempotent)."""
         if not name:
             raise ValueError("entity name must be non-empty")
+        if name in self._entities:
+            return
         self._entities.add(name)
-        self._out.setdefault(name, [])
-        self._in.setdefault(name, [])
+        self._order[name] = len(self._order)
+        self._out[name] = []
+        self._in[name] = []
+        self._sorted = None
 
     def add_relation(self, relation: Relation) -> None:
         """Add a relation, creating its endpoint entities if needed."""
@@ -49,6 +57,20 @@ class KnowledgeGraph:
         self.add_entity(relation.target)
         self._out[relation.source].append(relation)
         self._in[relation.target].append(relation)
+        self._sources_by_label.setdefault(relation.relation, set()).add(relation.source)
+
+    def __contains__(self, name: object) -> bool:
+        return name in self._entities
+
+    def sorted_entities(self) -> tuple[str, ...]:
+        """All entity names in sorted order, cached until an entity is added."""
+        if self._sorted is None:
+            self._sorted = tuple(sorted(self._entities))
+        return self._sorted
+
+    def sources_of(self, label: str) -> Set[str]:
+        """Entities that are the source of at least one ``label`` relation (read only)."""
+        return self._sources_by_label.get(label, frozenset())
 
     @property
     def entities(self) -> set[str]:
@@ -100,9 +122,15 @@ class KnowledgeGraph:
         return visited
 
     def subgraph_relations(self, entities: set[str]) -> list[Relation]:
-        """Return relations whose endpoints are both within ``entities``."""
+        """Return relations whose endpoints are both within ``entities``.
+
+        Only the outgoing edges of ``entities`` are read, visited in insertion order so the
+        result is ordered exactly as a scan over every relation would order it.
+        """
+        sources = sorted((e for e in entities if e in self._order), key=self._order.__getitem__)
         return [
             relation
-            for relation in self.relations()
-            if relation.source in entities and relation.target in entities
+            for source in sources
+            for relation in self._out[source]
+            if relation.target in entities
         ]

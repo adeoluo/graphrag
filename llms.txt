@@ -1,0 +1,37 @@
+# GraphRAG
+
+> GraphRAG built from scratch: entity and relation extraction, knowledge-graph construction, and traversal-based multi-hop retrieval.
+
+Languages: Python. License: MIT. Source: https://github.com/adeoluo/graphrag
+
+## Docs
+
+- [README](https://github.com/adeoluo/graphrag/blob/main/README.md): motivation, architecture, results, quickstart, usage, design decisions, testing, responsible ai, limitations, roadmap
+- [AGENTS.md](https://github.com/adeoluo/graphrag/blob/main/AGENTS.md): layout, commands and conventions for changing the code
+- [Architecture diagram](https://github.com/adeoluo/graphrag/blob/main/docs/architecture/architecture.mmd): Mermaid source of the component diagram
+- [End-to-End Case Study - A Multi-Hop Graph Query](https://github.com/adeoluo/graphrag/blob/main/docs/CASE_STUDY.md)
+- [Data Card - GraphRAG](https://github.com/adeoluo/graphrag/blob/main/docs/DATA_CARD.md)
+- [Definition of Done](https://github.com/adeoluo/graphrag/blob/main/docs/DEFINITION_OF_DONE.md)
+- [Evaluation Report - GraphRAG](https://github.com/adeoluo/graphrag/blob/main/docs/EVALUATION_REPORT.md)
+- [System Card - GraphRAG](https://github.com/adeoluo/graphrag/blob/main/docs/MODEL_CARD.md)
+- [Operations Guide - GraphRAG](https://github.com/adeoluo/graphrag/blob/main/docs/OPERATIONS.md)
+- [Scaling and Design Tradeoffs - GraphRAG](https://github.com/adeoluo/graphrag/blob/main/docs/SCALING.md)
+- [Threat Model - GraphRAG](https://github.com/adeoluo/graphrag/blob/main/docs/THREAT_MODEL.md)
+- [ADR-0001: Record architecture decisions](https://github.com/adeoluo/graphrag/blob/main/docs/adr/0001-record-architecture-decisions.md)
+- [ADR-0002: Rule-based entity and relation extraction](https://github.com/adeoluo/graphrag/blob/main/docs/adr/0002-rule-based-extraction.md)
+- [ADR-0003: Traversal-based retrieval instead of similarity](https://github.com/adeoluo/graphrag/blob/main/docs/adr/0003-traversal-retrieval.md)
+- [ADR-NNNN: <short title>](https://github.com/adeoluo/graphrag/blob/main/docs/adr/template.md)
+- [Changelog](https://github.com/adeoluo/graphrag/blob/main/CHANGELOG.md): release history
+
+## Source
+
+- [src/graphrag/__init__.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/__init__.py): GraphRAG - knowledge-graph construction and traversal-based retrieval.
+- [src/graphrag/cli.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/cli.py): Command-line interface for GraphRAG.
+- [src/graphrag/core/__init__.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/core/__init__.py): Core abstractions for GraphRAG.
+- [src/graphrag/core/graph.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/core/graph.py): The knowledge graph: entities as nodes, relations as labeled edges.
+- [src/graphrag/data.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/data.py): A bundled corpus and labeled questions for GraphRAG evaluation.
+- [src/graphrag/evaluation.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/evaluation.py): Evaluating graph retrieval against a flat text-retrieval baseline.
+- [src/graphrag/extraction.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/extraction.py): Extracting entities and relations from text to build the knowledge graph.
+- [src/graphrag/observability.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/observability.py): In-process request metrics for the HTTP service.
+- [src/graphrag/retrieval.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/retrieval.py): Graph retrieval: linking a query to entities and traversing for an answer.
+- [src/graphrag/service.py](https://github.com/adeoluo/graphrag/blob/main/src/graphrag/service.py): A standard-library HTTP service exposing graph retrieval.

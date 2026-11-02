@@ -35,13 +35,13 @@ def link_entities(query: str, graph: KnowledgeGraph) -> list[str]:
     mentions = extract_entities(query)
     linked: list[str] = []
     for mention in mentions:
-        if mention in graph.entities and mention not in linked:
+        if mention in graph and mention not in linked:
             linked.append(mention)
             continue
         # Fall back to a containment match (mention is part of an entity name or
         # vice versa). Iterate in sorted order so the choice is deterministic;
         # iterating the entity set directly depends on the hash seed.
-        for entity in sorted(graph.entities):
+        for entity in graph.sorted_entities():
             if (mention in entity or entity in mention) and entity not in linked:
                 linked.append(entity)
                 break
@@ -123,11 +123,7 @@ class GraphRetriever:
         """
         from collections import deque
 
-        countries = {
-            relation.source
-            for relation in self._graph.relations()
-            if relation.relation == "part_of"
-        }
+        countries = self._graph.sources_of("part_of")
         queue: deque[tuple[str, list[Relation]]] = deque([(start, [])])
         visited = {start}
         while queue:
