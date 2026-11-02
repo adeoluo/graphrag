@@ -170,6 +170,12 @@ The extracted entity graph and the evaluation.
   <img src="docs/demo/graph.gif" alt="The extracted entity graph and the evaluation" width="860">
 </p>
 
+The HTTP service answering over the graph, with the relation path it followed.
+
+<p align="center">
+  <img src="docs/demo/http.gif" alt="The HTTP service answering over the graph, with the relation path it followed" width="860">
+</p>
+
 ## Design decisions
 
 - **Rule-based extraction.** The project's contribution is the graph construction and
