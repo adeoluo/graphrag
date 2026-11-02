@@ -12,7 +12,7 @@ Each synthetic chain is three sentences -- ``Landmark is located in City``,
 answering "what country is Landmark in" requires chaining ``located_in`` then
 ``capital_of`` edges to the terminal country, which no single passage states.
 
-The data is synthetic and the graph/traversal is from-scratch pure Python: it is
+The data is synthetic and the graph/traversal is from-scratch Python: it is
 not meant to be competitive on wall-clock with compiled graph databases. The
 point is to show how this implementation scales, honestly.
 
@@ -102,7 +102,7 @@ def measure(num_chains: int) -> ScaleResult:
 
 
 def main() -> None:
-    print("Synthetic corpus; from-scratch pure-Python graph + traversal (not a graph database).")
+    print("Synthetic corpus; from-scratch Python graph + traversal (not a graph database).")
     print(f"Fixed query set: up to {_NUM_QUERIES} multi-hop 'what country is X in' questions.\n")
     header = (
         f"{'chains':>8}{'entities':>10}{'seconds':>10}"

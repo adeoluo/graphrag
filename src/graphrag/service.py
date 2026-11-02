@@ -1,4 +1,4 @@
-"""A dependency-free HTTP service exposing graph retrieval.
+"""A standard-library HTTP service exposing graph retrieval.
 
 The service separates a pure handler from the socket binding so it is fully
 testable without a network. The graph is built once at startup from the bundled

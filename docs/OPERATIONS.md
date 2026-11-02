@@ -8,7 +8,7 @@ The operational contract of the graph retrieval service.
 uv run python -m graphrag serve --host 0.0.0.0 --port 8000
 ```
 
-A standard-library HTTP server with **zero runtime dependencies**. The knowledge graph
+A standard-library HTTP server. The knowledge graph
 is built once at startup and then serves stateless requests.
 
 ## Endpoints

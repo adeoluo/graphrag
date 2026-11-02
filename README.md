@@ -5,12 +5,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/adeoluo/graphrag/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/adeoluo/graphrag/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Coverage" src="https://img.shields.io/badge/coverage-89%25-brightgreen">
+  <a href="https://github.com/adeoluo/graphrag/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/adeoluo/graphrag/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/adeoluo/graphrag/releases"><img alt="Release" src="https://img.shields.io/github/v/release/adeoluo/graphrag"></a>
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12-blue">
-  <img alt="Type checked" src="https://img.shields.io/badge/mypy-strict-blue">
-  <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20deps-0-brightgreen">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
 ---
@@ -19,22 +17,34 @@
 
 Vector RAG retrieves passages by similarity, which fails when the answer is spread across
 documents: "What country is the Eiffel Tower in?" needs the fact that the Eiffel Tower is
-in Paris *and* that Paris is the capital of France - two facts no single passage states.
+in Paris *and* that Paris is the capital of France, two facts no single passage states.
 GraphRAG instead extracts entities and relations into a **knowledge graph** and answers by
 **traversing explicit edges**, so multi-hop questions are resolved by following the graph.
-This project builds that end to end **from scratch**, with **zero runtime
-dependencies** and a deterministic, offline test suite.
+This project builds that end to end **from scratch**, with a deterministic, offline test suite.
 
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture/architecture.svg" alt="System architecture" width="860">
+  <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
 Documents are parsed by **entity and relation extraction** into triples that populate a
 **knowledge graph**. A question is answered by **linking** its mentions to graph entities,
 **traversing** outward (breadth-first) to gather a connected subgraph, and reading the
 answer off a **relation path**. See the [ADRs](docs/adr/) for key choices.
+
+### Components
+
+- **Extraction**: rule-based entity extraction (capitalized noun phrases) and relation
+  extraction (`capital_of`, `located_in`, `part_of`, `is_a`, `borders`, `flows_through`),
+  each relation recording its source document for provenance.
+- **Knowledge graph**: a directed, labeled multigraph with neighbor lookup, breadth-first
+  multi-hop traversal, and subgraph extraction.
+- **Entity linking**: matches a question's mentions to graph entities (exact, then
+  containment).
+- **Traversal retrieval**: follows a target relation, or chains location and capital edges
+  for compound "what country" questions, returning a cited path and confidence.
+- **Evaluation**: `evaluate` scores answer accuracy, split by single- vs multi-hop.
 
 ## Results
 
@@ -48,7 +58,7 @@ answer off a **relation path**. See the [ADRs](docs/adr/) for key choices.
 
 This is the whole thesis: the flat baseline scores **zero** on multi-hop questions because
 no single passage contains the answer, while graph traversal reaches it by chaining
-relation edges - a **+1.00** gain, with no regression on single-hop questions.
+relation edges, a **+1.00** gain, with no regression on single-hop questions.
 
 ### Scale
 
@@ -67,20 +77,24 @@ machine (`uv run python benchmarks/scale.py`):
 
 Traversal stays exact (accuracy 1.00) as the graph grows, but throughput falls
 because the from-scratch retriever rescans relation edges per query to locate the
-terminal country. These numbers are from synthetic data on a pure-Python
+terminal country. These numbers are from synthetic data on a Python
 implementation; they are **not** a comparison against production graph databases
 or vector stores, which would be far faster and are the right tool at real scale.
 
-## Demonstration
+### Performance and reliability
 
-```text
-$ python -m graphrag ask "What country is the Eiffel Tower in"
-Linked entities: Eiffel Tower
-Relation path:
-  (Eiffel Tower) -[located_in]-> (Paris)
-  (Paris) -[capital_of]-> (France)
-Answer: France  (confidence 0.80)
-```
+A deterministic micro-benchmark (`uv run python benchmarks/benchmark.py`) builds a graph of
+roughly fifteen hundred entities and a thousand relations from a thousand synthetic
+sentences and runs five hundred multi-hop traversal queries. On a laptop the graph builds in
+a few milliseconds and traversal sustains thousands of queries per second, because each
+answer follows a short path through an adjacency index rather than scanning passages.
+
+A production-style stress benchmark (`uv run python benchmarks/stress.py`) drives the full
+service handler under concurrent load and reports throughput with p50, p95, and p99 latency.
+It surfaces a real constraint: the CPU-bound Python traversal is limited by the global interpreter
+lock, so throughput is flat across threads and the tail grows with concurrency; the service
+is scaled with processes. The scaling path and tradeoffs are in [docs/SCALING.md](docs/SCALING.md),
+and a full request walk-through is in the [case study](docs/CASE_STUDY.md).
 
 ## Quickstart
 
@@ -106,31 +120,22 @@ answer = GraphRetriever(graph).retrieve("What country is the Eiffel Tower in")
 print(answer.answer, [r.as_triple() for r in answer.path])
 ```
 
-## Components
+## Usage
 
-- **Extraction** - rule-based entity extraction (capitalized noun phrases) and relation
-  extraction (`capital_of`, `located_in`, `part_of`, `is_a`, `borders`, `flows_through`),
-  each relation recording its source document for provenance.
-- **Knowledge graph** - a directed, labeled multigraph with neighbor lookup, breadth-first
-  multi-hop traversal, and subgraph extraction.
-- **Entity linking** - matches a question's mentions to graph entities (exact, then
-  containment).
-- **Traversal retrieval** - follows a target relation, or chains location and capital edges
-  for compound "what country" questions, returning a cited path and confidence.
-- **Evaluation** - `evaluate` scores answer accuracy, split by single- vs multi-hop.
+### Command line
 
-## Design decisions
+```text
+$ python -m graphrag ask "What country is the Eiffel Tower in"
+Linked entities: Eiffel Tower
+Relation path:
+  (Eiffel Tower) -[located_in]-> (Paris)
+  (Paris) -[capital_of]-> (France)
+Answer: France  (confidence 0.80)
+```
 
-- **Rule-based extraction.** The project's contribution is the graph construction and
-  traversal, so extraction is deterministic and inspectable; a model-backed extractor drops
-  in behind `extract_relations`. ([ADR-0002](docs/adr/0002-rule-based-extraction.md))
-- **Traversal, not similarity.** Answers come from following explicit edges, which is what
-  lets multi-hop questions resolve. ([ADR-0003](docs/adr/0003-traversal-retrieval.md))
-- **Zero runtime dependencies.** The graph, extractor, and retriever are pure Python.
+### HTTP service
 
-## Running the service
-
-A dependency-free HTTP service exposes graph retrieval as a production-style JSON API:
+A standard-library HTTP service exposes graph retrieval as a production-style JSON API:
 
 ```bash
 python -m graphrag serve --port 8000
@@ -144,20 +149,30 @@ relation path used as a citation, the linked entities, and a confidence. See the
 [operations guide](docs/OPERATIONS.md) for the service contract and operational constraints. The service also exposes `GET /ready` (readiness) and `GET /metrics`
 (per-route request, error, and latency metrics in Prometheus text format).
 
-## Performance and reliability
+## Design decisions
 
-A deterministic micro-benchmark (`uv run python benchmarks/benchmark.py`) builds a graph of
-roughly fifteen hundred entities and a thousand relations from a thousand synthetic
-sentences and runs five hundred multi-hop traversal queries. On a laptop the graph builds in
-a few milliseconds and traversal sustains thousands of queries per second, because each
-answer follows a short path through an adjacency index rather than scanning passages.
+- **Rule-based extraction.** The project's contribution is the graph construction and
+  traversal, so extraction is deterministic and inspectable; a model-backed extractor drops
+  in behind `extract_relations`. ([ADR-0002](docs/adr/0002-rule-based-extraction.md))
+- **Traversal, not similarity.** Answers come from following explicit edges, which is what
+  lets multi-hop questions resolve. ([ADR-0003](docs/adr/0003-traversal-retrieval.md))
+- **From-scratch core.** The graph, extractor, and retriever are implemented in this package,
+  so every hop of a retrieval is inspectable.
 
-A production-style stress benchmark (`uv run python benchmarks/stress.py`) drives the full
-service handler under concurrent load and reports throughput with p50, p95, and p99 latency.
-It surfaces a real constraint: the pure-Python traversal is bound by the global interpreter
-lock, so throughput is flat across threads and the tail grows with concurrency; the service
-is scaled with processes. The scaling path and tradeoffs are in [docs/SCALING.md](docs/SCALING.md),
-and a full request walk-through is in the [case study](docs/CASE_STUDY.md).
+## Testing
+
+```bash
+make test        # uv run pytest
+make coverage    # pytest with an 80% coverage gate, as in CI
+make lint type   # ruff format check, ruff lint, mypy
+```
+
+- `tests/test_core.py`: the knowledge graph (relation insertion, neighbor lookup, breadth-first traversal and hop limits, subgraphs) and entity and relation extraction.
+- `tests/test_retrieval.py`: entity linking and traversal retrieval for single-hop, location, multi-hop, and unknown-entity questions.
+- `tests/test_eval_cli.py`: the labeled question set, the check that graph traversal beats flat retrieval on multi-hop questions, and the command-line interface.
+- `tests/test_service.py`: the HTTP handler layer, including health, readiness, metrics, `/ask`, input validation, and unknown routes.
+
+CI runs ruff format, ruff lint, mypy, and pytest with the coverage gate on Python 3.11 and 3.12, then builds the package and the Docker image.
 
 ## Responsible AI
 
@@ -168,7 +183,7 @@ and a full request walk-through is in the [case study](docs/CASE_STUDY.md).
 ## Limitations
 
 - Extraction is rule-based; messy prose needs a model-backed extractor (a deliberate
-  boundary to stay from-scratch and dependency-free).
+  boundary to keep the pipeline from scratch and inspectable).
 - The relation vocabulary and compound-question handling are small and illustrative.
 - The bundled corpus is a demonstration, not a competitive multi-hop benchmark.
 
@@ -180,5 +195,4 @@ and a full request walk-through is in the [case study](docs/CASE_STUDY.md).
 
 ## License
 
-[MIT](LICENSE). Part of an artificial intelligence engineering portfolio by
-[adeoluo](https://github.com/adeoluo).
+Released under the [MIT License](LICENSE).
