@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The file is generated
 from Conventional Commits by [git-cliff](https://git-cliff.org) when a release is cut
 with `make cut-release`.
 
-## Unreleased
+## [0.1.0] 2026-11-03
 
 ### Features
 
@@ -19,6 +19,10 @@ with `make cut-release`.
 
 - Deterministic entity linking and single-count self-loops (#17)
 
+### Performance
+
+- Index relation labels, entity order and sorted names in the graph (#4)
+
 ### Documentation
 
 - Write README, architecture diagram, and responsible-AI cards
@@ -30,6 +34,7 @@ with `make cut-release`.
 - Compact horizontal architecture diagram
 - Recorded demos of more commands, with their vhs tapes (#2)
 - Recorded demos of the HTTP service and more commands (#3)
+- Describe the supply chain accurately (#5)
 
 ### Build and CI
 
